@@ -149,7 +149,7 @@ def style_video(args):
     make_video_cmd = [
             'ffmpeg',
             '-framerate', '12',
-            '-i', os.path.join(output_frames_dir, 'frame-%05d.png'),
+            '-i', os.path.join(output_frames_dir, 'frame-%05d.jpg'),
             '-i', audio_file,
             '-c:v', 'libx264',
             '-pix_fmt', 'yuv420p',
