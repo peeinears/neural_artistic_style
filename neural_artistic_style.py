@@ -104,7 +104,7 @@ def run():
     if subject_file_extension == '.mp4':
         style_video(args)
     else:
-        style_image(args.subject, args)
+        style_image(args)
 
 def style_video(args):
     input_frames_dir = 'input_frames'
