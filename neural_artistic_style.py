@@ -139,7 +139,7 @@ def style_video(args):
     for frame in os.listdir(input_frames_dir):
         frame_args.subject = os.path.join(input_frames_dir, frame)
         frame_args.output = os.path.join(output_frames_dir, frame)
-        style_image(args)
+        style_image(frame_args)
 
     # strip out extension to replace with .mp4
     output = os.path.splitext(args.output)[0] + '.mp4'
