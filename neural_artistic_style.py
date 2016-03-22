@@ -71,8 +71,12 @@ def run():
                              'in the initial image.')
     parser.add_argument('--random-seed', default=None, type=int,
                         help='Random state.')
-    parser.add_argument('--animation', default='animation', type=str,
+    parser.add_argument('--animation', dest="animation_enabled",
+                        action="store_false", help='Enables animation.')
+    parser.add_argument('--animation-directory', default='animation', type=str,
                         help='Output animation directory.')
+    parser.add_argument('--animation-rate', default=1, type=int,
+                        help='Number of iterations between each frame.')
     parser.add_argument('--iterations', default=500, type=int,
                         help='Number of iterations to run.')
     parser.add_argument('--learn-rate', default=2.0, type=float,
@@ -119,14 +123,15 @@ def run():
     def net_img():
         return to_rgb(net.image) + pixel_mean
 
-    if not os.path.exists(args.animation):
-        os.mkdir(args.animation)
+    if args.animation_enabled and not os.path.exists(args.animation_directory):
+        os.mkdir(args.animation_directory)
 
     params = net.params
     learn_rule = dp.Adam(learn_rate=args.learn_rate)
     learn_rule_states = [learn_rule.init_state(p) for p in params]
     for i in range(args.iterations):
-        imsave(os.path.join(args.animation, '%.4d.png' % i), net_img())
+        if args.animation_enabled and i % args.animation_rate == 0:
+            imsave(os.path.join(args.animation_directory, '%.4d.png' % i), net_img())
         cost = np.mean(net.update())
         for param, state in zip(params, learn_rule_states):
             learn_rule.step(param, state)
