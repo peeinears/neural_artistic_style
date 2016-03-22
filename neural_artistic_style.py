@@ -124,7 +124,7 @@ def style_video(args):
             'ffmpeg',
             '-i', args.subject,
             '-vf', 'scale=320:-1', # todo scale
-            '-r', 12, # todo framerate
+            '-r', '12', # todo framerate
             '-f', 'image2',
             os.path.join(input_frames_dir, 'frame-%5d.jpg')]
 
@@ -146,7 +146,7 @@ def style_video(args):
 
     make_video_cmd = [
             'ffmpeg',
-            '-framerate', 12,
+            '-framerate', '12',
             '-i', os.path.join(output_frames_dir, 'frame-%05d.png'),
             '-i', audio_file,
             '-c:v', 'libx264',
