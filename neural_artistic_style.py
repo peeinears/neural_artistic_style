@@ -112,9 +112,12 @@ def style_video(args):
     audio_file = 'raw-audio.wav'
 
     # make sure we're starting from empty frames dirs
-    shutil.rmtree(input_frames_dir)
+    if os.path.exists(input_frames_dir):
+        shutil.rmtree(input_frames_dir)
+    if os.path.exists(output_frames_dir):
+        shutil.rmtree(output_frames_dir)
+
     os.mkdir(input_frames_dir)
-    shutil.rmtree(output_frames_dir)
     os.mkdir(output_frames_dir)
 
     split_frames_cmd = [
