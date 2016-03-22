@@ -128,7 +128,7 @@ def style_video(args):
             '-f', 'image2',
             os.path.join(input_frames_dir, 'frame-%5d.jpg')]
 
-    extract_audio_cmd = ['ffmpeg', '-i', args.subject, audio_file]
+    extract_audio_cmd = ['ffmpeg', '-y', '-i', args.subject, audio_file]
 
     subprocess.call(split_frames_cmd)
     subprocess.call(extract_audio_cmd)
@@ -149,6 +149,7 @@ def style_video(args):
     make_video_cmd = [
             'ffmpeg',
             '-framerate', '12',
+            '-y', # overwrite output files without asking
             '-i', os.path.join(output_frames_dir, 'frame-%05d.jpg'),
             '-i', audio_file,
             '-c:v', 'libx264',
