@@ -148,9 +148,10 @@ def style_video(args):
             '-i', audio_file,
             '-c:v', 'libx264',
             '-pix_fmt', 'yuv420p',
-            output
+            output]
 
     subprocess.call(make_video_cmd)
+
 
 def style_image(args):
     if args.random_seed is not None:
