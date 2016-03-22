@@ -138,7 +138,7 @@ def style_video(args):
 
     frames = os.listdir(input_frames_dir)
     for i, frame in enumerate(frames):
-        print('Styling frame %i of %i' % (i, len(frames)))
+        print('Styling frame %i of %i' % (i + 1, len(frames)))
         frame_args.subject = os.path.join(input_frames_dir, frame)
         frame_args.output = os.path.join(output_frames_dir, frame)
         style_image(frame_args)
