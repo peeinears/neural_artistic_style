@@ -122,13 +122,13 @@ def style_video(args):
 
     split_frames_cmd = [
             'ffmpeg',
-            '-i', subject,
+            '-i', args.subject,
             '-vf', 'scale=320:-1', # todo scale
             '-r', 12, # todo framerate
             '-f', 'image2',
             os.path.join(input_frames_dir, 'frame-%5d.jpg')]
 
-    extract_audio_cmd = ['ffmpeg', '-i', subject, audio_file]
+    extract_audio_cmd = ['ffmpeg', '-i', args.subject, audio_file]
 
     subprocess.call(split_frames_cmd)
     subprocess.call(extract_audio_cmd)
