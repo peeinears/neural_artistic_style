@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 import os
+import shutil
+import subprocess
+import copy
 import argparse
 import numpy as np
 import scipy.misc
@@ -59,11 +62,11 @@ def run():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument('--subject', required=True, type=str,
-                        help='Subject image.')
+                        help='Subject image or video.')
     parser.add_argument('--style', required=True, type=str,
                         help='Style image.')
     parser.add_argument('--output', default='out.png', type=str,
-                        help='Output image.')
+                        help='Output file.')
     parser.add_argument('--init', default=None, type=str,
                         help='Initial image. Subject is chosen as default.')
     parser.add_argument('--init-noise', default=0.0, type=float_range,
@@ -97,6 +100,59 @@ def run():
                         type=str, help='Network in MatConvNet format).')
     args = parser.parse_args()
 
+    subject_file_extension = os.path.splitext(args.subject)[1]
+    if subject_file_extension == '.mp4':
+        style_video(args)
+    else:
+        style_image(args.subject, args)
+
+def style_video(args):
+    input_frames_dir = 'input_frames'
+    output_frames_dir = 'output_frames'
+    audio_file = 'raw-audio.wav'
+
+    # make sure we're starting from empty frames dirs
+    shutil.rmtree(input_frames_dir)
+    os.mkdir(input_frames_dir)
+    shutil.rmtree(output_frames_dir)
+    os.mkdir(output_frames_dir)
+
+    split_frames_cmd = [
+            'ffmpeg',
+            '-i', subject,
+            '-vf', 'scale=320:-1', # todo scale
+            '-r', 12, # todo framerate
+            '-f', 'image2',
+            os.path.join(input_frames_dir, 'frame-%5d.jpg')]
+
+    extract_audio_cmd = ['ffmpeg', '-i', subject, audio_file]
+
+    subprocess.call(split_frames_cmd)
+    subprocess.call(extract_audio_cmd)
+
+    frame_args = copy.copy(args)
+    frame_args.animation = False
+
+    for frame in os.listdir(input_frames_dir):
+        frame_args.subject = os.path.join(input_frames_dir, frame)
+        frame_args.output = os.path.join(output_frames_dir, frame)
+        style_image(args)
+
+    # strip out extension to replace with .mp4
+    output = os.path.splitext(args.output)[0] + '.mp4'
+
+    make_video_cmd = [
+            'ffmpeg',
+            '-framerate', 12,
+            '-i', os.path.join(output_frames_dir, 'frame-%05d.png'),
+            '-i', audio_file,
+            '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            output
+
+    subprocess.call(make_video_cmd)
+
+def style_image(args):
     if args.random_seed is not None:
         np.random.seed(args.random_seed)
 
