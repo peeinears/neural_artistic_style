@@ -129,6 +129,7 @@ def style_video(args):
             'ffmpeg',
             '-i', args.subject,
             '-r', str(args.framerate),
+            '-qscale', '0', # maintain quality
             '-f', 'image2']
 
     if args.frames_scale is not None:
