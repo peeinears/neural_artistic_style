@@ -72,6 +72,8 @@ def run():
     parser.add_argument('--init-noise', default=0.0, type=float_range,
                         help='Weight between [0, 1] to adjust the noise level '
                              'in the initial image.')
+    parser.add_argument('--size', default=None, type=int,
+                        help='Resize width before styling.')
     parser.add_argument('--random-seed', default=None, type=int,
                         help='Random state.')
     parser.add_argument('--animation', dest="animation_enabled",
@@ -98,12 +100,8 @@ def run():
                         choices=['max', 'avg'], help='Subsampling scheme.')
     parser.add_argument('--network', default='imagenet-vgg-verydeep-19.mat',
                         type=str, help='Network in MatConvNet format).')
-
-    # video specific args
     parser.add_argument('--framerate', default=12, type=int,
                         help='Frame rate for video (fps).')
-    parser.add_argument('--frames-scale', default=None, type=str,
-                        help='Scales input frames before styling.')
 
     args = parser.parse_args()
 
@@ -177,7 +175,17 @@ def style_image(args):
 
     # Inputs
     style_img = imread(args.style) - pixel_mean
-    subject_img = imread(args.subject) - pixel_mean
+    subject_img = imread(args.subject)
+
+    if args.size is not None:
+        # resize maintaining aspect ratio
+        width, height = subject_img.shape[:2]
+        new_width = args.size
+        new_height = height * new_width / width
+        subject_img = scipy.misc.imresize(subject_img, (new_width,  new_height))
+
+    subject_img = subject_img - pixel_mean
+
     if args.init is None:
         init_img = subject_img
     else:
