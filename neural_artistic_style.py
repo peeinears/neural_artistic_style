@@ -75,7 +75,7 @@ def run():
     parser.add_argument('--random-seed', default=None, type=int,
                         help='Random state.')
     parser.add_argument('--animation', dest="animation_enabled",
-                        action="store_false", help='Enables animation.')
+                        action="store_true", help='Enables animation.')
     parser.add_argument('--animation-directory', default='animation', type=str,
                         help='Output animation directory.')
     parser.add_argument('--animation-rate', default=1, type=int,
