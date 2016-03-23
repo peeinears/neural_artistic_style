@@ -98,6 +98,13 @@ def run():
                         choices=['max', 'avg'], help='Subsampling scheme.')
     parser.add_argument('--network', default='imagenet-vgg-verydeep-19.mat',
                         type=str, help='Network in MatConvNet format).')
+
+    # video specific args
+    parser.add_argument('--framerate', default=12, type=int,
+                        help='Frame rate for video (fps).')
+    parser.add_argument('--frames-scale', default=None, type=str,
+                        help='Scales input frames before styling.')
+
     args = parser.parse_args()
 
     subject_file_extension = os.path.splitext(args.subject)[1]
@@ -123,10 +130,13 @@ def style_video(args):
     split_frames_cmd = [
             'ffmpeg',
             '-i', args.subject,
-            '-vf', 'scale=320:-1', # todo scale
-            '-r', '12', # todo framerate
-            '-f', 'image2',
-            os.path.join(input_frames_dir, 'frame-%5d.jpg')]
+            '-r', str(args.framerate),
+            '-f', 'image2']
+
+    if args.frames_scale is not None:
+        split_frames_cmd.extend(['-vf', 'scale=' + args.frames_scale ])
+
+    split_frames_cmd.append(os.path.join(input_frames_dir, 'frame-%5d.jpg'))
 
     extract_audio_cmd = ['ffmpeg', '-y', '-i', args.subject, audio_file]
 
@@ -148,7 +158,7 @@ def style_video(args):
 
     make_video_cmd = [
             'ffmpeg',
-            '-framerate', '12',
+            '-framerate', str(args.framerate),
             '-y', # overwrite output files without asking
             '-i', os.path.join(output_frames_dir, 'frame-%05d.jpg'),
             '-i', audio_file,
