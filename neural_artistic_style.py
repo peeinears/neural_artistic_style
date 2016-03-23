@@ -132,9 +132,6 @@ def style_video(args):
             '-qscale', '0', # maintain quality
             '-f', 'image2']
 
-    if args.frames_scale is not None:
-        split_frames_cmd.extend(['-vf', 'scale=' + args.frames_scale ])
-
     split_frames_cmd.append(os.path.join(input_frames_dir, 'frame-%5d.jpg'))
 
     extract_audio_cmd = ['ffmpeg', '-y', '-i', args.subject, audio_file]
