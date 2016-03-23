@@ -108,7 +108,7 @@ def run():
     args = parser.parse_args()
 
     subject_file_extension = os.path.splitext(args.subject)[1].lower()
-    if subject_file_extension == '.mp4' || subject_file_extension == '.mov':
+    if subject_file_extension == '.mp4' or subject_file_extension == '.mov':
         style_video(args)
     else:
         style_image(args)
