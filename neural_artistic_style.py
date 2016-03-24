@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import copy
 import time
+import sys
 import argparse
 import numpy as np
 import scipy.misc
