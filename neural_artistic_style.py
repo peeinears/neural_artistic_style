@@ -183,8 +183,8 @@ def style_video(args):
             minutes_per_frame = 0 if i == 0 else round(seconds_passed / i / 60)
             minutes_left = 0 if i == 0 else ((seconds_passed * len(frames) / i) - seconds_passed) / 60
             print_progress(float(i) / len(frames),
-                    'Frame: %i, Avg time per frame: %imin, Time left: %imin'
-                    % (i + 1, minutes_per_frame, minutes_left))
+                    'Frame: %i/%i, Avg time per frame: %imin, Time left: %imin'
+                    % (i + 1, len(frames), minutes_per_frame, minutes_left))
         frame_args.subject = os.path.join(input_frames_dir, frame)
         frame_args.output = os.path.join(output_frames_dir, frame)
         style_image(frame_args)
@@ -268,8 +268,8 @@ def style_image(args):
             seconds_passed = time.time() - start_time
             minutes_left = 0 if i == 0 else ((seconds_passed * args.iterations / i) - seconds_passed) / 60
             print_progress(float(i) / args.iterations,
-                    'Iteration: %i, Time left: %imin'
-                    % (i + 1, minutes_left))
+                    'Iteration: %i/%i, Time left: %imin'
+                    % (i + 1, args.iterations, minutes_left))
         if args.animation_enabled and i % args.animation_rate == 0:
             imsave(os.path.join(args.animation_directory, '%.4d.png' % i), net_img())
         net.update()
