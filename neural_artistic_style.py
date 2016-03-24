@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import copy
+import time
 import argparse
 import numpy as np
 import scipy.misc
@@ -55,6 +56,19 @@ def to_rgb(img):
     return np.transpose(img[0], (1, 2, 0))
 
 
+def print_progress(progress, info=None):
+    total_length = 50
+    bar_length = int(round(progress * total_length))
+    out = '\r['
+    out += '#' * bar_length
+    out += ' ' * (total_length - bar_length)
+    out += '] %i%' % round(progress * 100)
+    if info is not None:
+        out += ' - ' + info
+    sys.stdout.write(out)
+    sys.stdout.flush()
+
+
 def run():
     parser = argparse.ArgumentParser(
         description='Neural artistic style. Generates an image by combining '
@@ -102,6 +116,8 @@ def run():
                         type=str, help='Network in MatConvNet format).')
     parser.add_argument('--framerate', default=12, type=int,
                         help='Frame rate for video (fps).')
+    parser.add_argument('--no-progress', dest="progress_disabled",
+                        action="store_true", help='Disable progress bar.')
 
     args = parser.parse_args()
 
@@ -112,6 +128,9 @@ def run():
         style_image(args)
 
 def style_video(args):
+    if not args.progress_disabled:
+        print_progress(0, 'Initializing...')
+
     input_frames_dir = 'input_frames'
     output_frames_dir = 'output_frames'
     audio_file = 'raw-audio.wav'
@@ -125,29 +144,52 @@ def style_video(args):
     os.mkdir(input_frames_dir)
     os.mkdir(output_frames_dir)
 
+    if not args.progress_disabled:
+        print_progress(0, 'Extracting frames and audio...')
+
     split_frames_cmd = [
             'ffmpeg',
             '-i', args.subject,
             '-r', str(args.framerate),
             '-qscale', '0', # maintain quality
-            '-f', 'image2']
+            '-loglevel', '16', # only display errors
+            '-f', 'image2',
+            os.path.join(input_frames_dir, 'frame-%5d.jpg')]
 
-    split_frames_cmd.append(os.path.join(input_frames_dir, 'frame-%5d.jpg'))
-
-    extract_audio_cmd = ['ffmpeg', '-y', '-i', args.subject, audio_file]
+    extract_audio_cmd = [
+            'ffmpeg',
+            '-y',
+            '-i', args.subject,
+            '-loglevel', '16',
+            audio_file]
 
     subprocess.call(split_frames_cmd)
     subprocess.call(extract_audio_cmd)
 
     frame_args = copy.copy(args)
     frame_args.animation = False
+    frame_args.progress_disabled = True
+
+    if not args.progress_disabled:
+        print_progress(0, 'Styling frames...')
+        start_time = time.time()
 
     frames = os.listdir(input_frames_dir)
+
     for i, frame in enumerate(frames):
-        print('Styling frame %i of %i' % (i + 1, len(frames)))
+        if not args.progress_disabled:
+            seconds_passed = time.time() - start_time
+            minutes_per_frame = 0 if i == 0 else round(seconds_passed / i / 60)
+            minutes_left = 0 if i == 0 else ((seconds_passed * iterations / i) - seconds_passed) / 60
+            print_progress(float(i) / iterations,
+                    'Frame: %i, Avg time per frame: %imin, Time left: %imin'
+                    % (i + 1, minutes_per_frame, minutes_left))
         frame_args.subject = os.path.join(input_frames_dir, frame)
         frame_args.output = os.path.join(output_frames_dir, frame)
         style_image(frame_args)
+
+    if not args.progress_disabled:
+        print_progress(1, 'Done styling. Making video file...')
 
     # strip out extension to replace with .mp4
     output = os.path.splitext(args.output)[0] + '.mp4'
@@ -160,12 +202,20 @@ def style_video(args):
             '-i', audio_file,
             '-c:v', 'libx264',
             '-pix_fmt', 'yuv420p',
+            '-loglevel', '16', # only display errors
             output]
 
     subprocess.call(make_video_cmd)
 
+    if not args.progress_disabled:
+        minutes_passed = (time.time() - start_time) / 60
+        print_progress(1, 'Done! Took %imin.' % minutes_passed)
+
 
 def style_image(args):
+    if not args.progress_disabled:
+        print_progress(0, 'Initializing...')
+
     if args.random_seed is not None:
         np.random.seed(args.random_seed)
 
@@ -205,18 +255,31 @@ def style_image(args):
     if args.animation_enabled and not os.path.exists(args.animation_directory):
         os.mkdir(args.animation_directory)
 
+    if not args.progress_disabled:
+        print_progress(0, 'Styling...')
+        start_time = time.time()
+
     params = net.params
     learn_rule = dp.Adam(learn_rate=args.learn_rate)
     learn_rule_states = [learn_rule.init_state(p) for p in params]
     for i in range(args.iterations):
+        if not args.progress_disabled:
+            seconds_passed = time.time() - start_time
+            minutes_left = 0 if i == 0 else ((seconds_passed * iterations / i) - seconds_passed) / 60
+            print_progress(float(i) / iterations,
+                    'Iteration: %i, Cost: %.4f, Time left: %imin'
+                    % (i + 1, cost, minutes_left))
         if args.animation_enabled and i % args.animation_rate == 0:
             imsave(os.path.join(args.animation_directory, '%.4d.png' % i), net_img())
         cost = np.mean(net.update())
         for param, state in zip(params, learn_rule_states):
             learn_rule.step(param, state)
-        print('Iteration: %i, cost: %.4f' % (i, cost))
+
     imsave(args.output, net_img())
 
+    if not args.progress_disabled:
+        minutes_passed = (time.time() - start_time) / 60
+        print_progress(1, 'Done! Took %imin.' % minutes_passed)
 
 if __name__ == "__main__":
     run()
