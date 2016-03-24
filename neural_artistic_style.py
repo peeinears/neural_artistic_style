@@ -60,13 +60,12 @@ def to_rgb(img):
 def print_progress(progress, info=None):
     total_length = 50
     bar_length = int(round(progress * total_length))
-    out = '\r\n['
+    out = '\r['
     out += '#' * bar_length
     out += ' ' * (total_length - bar_length)
     out += '] %i%%' % round(progress * 100)
     if info is not None:
         out += ' - ' + info
-    out += '\n'
     sys.stdout.write(out)
     sys.stdout.flush()
 
