@@ -227,10 +227,10 @@ def style_image(args):
 
     if args.size is not None:
         # resize maintaining aspect ratio
-        width, height = subject_img.shape[:2]
+        height, width = subject_img.shape[:2]
         new_width = args.size
         new_height = height * new_width / width
-        subject_img = scipy.misc.imresize(subject_img, (new_width,  new_height))
+        subject_img = scipy.misc.imresize(subject_img, (new_height,  new_width))
 
     subject_img = subject_img - pixel_mean
 
