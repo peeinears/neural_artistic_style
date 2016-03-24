@@ -62,7 +62,7 @@ def print_progress(progress, info=None):
     out = '\r['
     out += '#' * bar_length
     out += ' ' * (total_length - bar_length)
-    out += '] %i%' % round(progress * 100)
+    out += '] %i%%' % round(progress * 100)
     if info is not None:
         out += ' - ' + info
     sys.stdout.write(out)
