@@ -181,8 +181,8 @@ def style_video(args):
         if not args.progress_disabled:
             seconds_passed = time.time() - start_time
             minutes_per_frame = 0 if i == 0 else round(seconds_passed / i / 60)
-            minutes_left = 0 if i == 0 else ((seconds_passed * iterations / i) - seconds_passed) / 60
-            print_progress(float(i) / iterations,
+            minutes_left = 0 if i == 0 else ((seconds_passed * len(frames) / i) - seconds_passed) / 60
+            print_progress(float(i) / len(frames),
                     'Frame: %i, Avg time per frame: %imin, Time left: %imin'
                     % (i + 1, minutes_per_frame, minutes_left))
         frame_args.subject = os.path.join(input_frames_dir, frame)
@@ -266,8 +266,8 @@ def style_image(args):
     for i in range(args.iterations):
         if not args.progress_disabled:
             seconds_passed = time.time() - start_time
-            minutes_left = 0 if i == 0 else ((seconds_passed * iterations / i) - seconds_passed) / 60
-            print_progress(float(i) / iterations,
+            minutes_left = 0 if i == 0 else ((seconds_passed * args.iterations / i) - seconds_passed) / 60
+            print_progress(float(i) / args.iterations,
                     'Iteration: %i, Cost: %.4f, Time left: %imin'
                     % (i + 1, cost, minutes_left))
         if args.animation_enabled and i % args.animation_rate == 0:
