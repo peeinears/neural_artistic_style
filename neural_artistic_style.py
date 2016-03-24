@@ -268,11 +268,11 @@ def style_image(args):
             seconds_passed = time.time() - start_time
             minutes_left = 0 if i == 0 else ((seconds_passed * args.iterations / i) - seconds_passed) / 60
             print_progress(float(i) / args.iterations,
-                    'Iteration: %i, Cost: %.4f, Time left: %imin'
-                    % (i + 1, cost, minutes_left))
+                    'Iteration: %i, Time left: %imin'
+                    % (i + 1, minutes_left))
         if args.animation_enabled and i % args.animation_rate == 0:
             imsave(os.path.join(args.animation_directory, '%.4d.png' % i), net_img())
-        cost = np.mean(net.update())
+        net.update()
         for param, state in zip(params, learn_rule_states):
             learn_rule.step(param, state)
 
