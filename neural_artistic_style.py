@@ -115,15 +115,15 @@ def run():
                         choices=['max', 'avg'], help='Subsampling scheme.')
     parser.add_argument('--network', default='imagenet-vgg-verydeep-19.mat',
                         type=str, help='Network in MatConvNet format).')
-    parser.add_argument('--framerate', default=12, type=int,
-                        help='Frame rate for video (fps).')
+    parser.add_argument('--framerate', default=None, type=int,
+                        help='Frame rate for video (fps). Defaults to source fps')
     parser.add_argument('--no-progress', dest="progress_disabled",
                         action="store_true", help='Disable progress bar.')
 
     args = parser.parse_args()
 
     subject_file_extension = os.path.splitext(args.subject)[1].lower()
-    if subject_file_extension == '.mp4' or subject_file_extension == '.mov':
+    if subject_file_extension in ['.mp4', '.mov', '.gif']:
         style_video(args)
     else:
         style_image(args)
@@ -148,24 +148,31 @@ def style_video(args):
     if not args.progress_disabled:
         print_progress(0, 'Extracting frames and audio...')
 
+    is_gif = os.path.splitext(args.subject)[1].lower() == '.gif'
+
     split_frames_cmd = [
             'ffmpeg',
             '-i', args.subject,
-            '-r', str(args.framerate),
             '-qscale', '0', # maintain quality
-            '-loglevel', '16', # only display errors
-            '-f', 'image2',
-            os.path.join(input_frames_dir, 'frame-%5d.jpg')]
+            '-loglevel', 'error',
+            '-f', 'image2']
 
-    extract_audio_cmd = [
-            'ffmpeg',
-            '-y',
-            '-i', args.subject,
-            '-loglevel', '16',
-            audio_file]
+    if args.framerate is not None:
+        make_video_cmd.extend(['-r', str(args.framerate)])
+
+    make_video_cmd.append(os.path.join(input_frames_dir, 'frame-%5d.jpg'))
 
     subprocess.call(split_frames_cmd)
-    subprocess.call(extract_audio_cmd)
+
+    if not is_gif:
+        extract_audio_cmd = [
+                'ffmpeg',
+                '-y',
+                '-i', args.subject,
+                '-loglevel', 'error',
+                audio_file]
+
+        subprocess.call(extract_audio_cmd)
 
     frame_args = copy.copy(args)
     frame_args.animation = False
@@ -192,18 +199,26 @@ def style_video(args):
     if not args.progress_disabled:
         print_progress(1, 'Done styling. Making video file...')
 
-    # strip out extension to replace with .mp4
-    output = os.path.splitext(args.output)[0] + '.mp4'
+    # strip out extension to force replace with .mp4 or .gif
+    output_file_extension = '.gif' if is_gif else '.mp4'
+    output = os.path.splitext(args.output)[0] + output_file_extension
 
     make_video_cmd = [
             'ffmpeg',
-            '-framerate', str(args.framerate),
             '-y', # overwrite output files without asking
-            '-i', os.path.join(output_frames_dir, 'frame-%05d.jpg'),
-            '-i', audio_file,
-            '-c:v', 'libx264',
+            '-i', os.path.join(output_frames_dir, 'frame-%05d.jpg')]
+
+    if not is_gif:
+        make_video_cmd.extend(['-i', audio_file, '-c:v', 'libx264'])
+
+    if args.framerate is not None:
+        make_video_cmd.extend(['-framerate', str(args.framerate)])
+        if is_gif:
+            make_video_cmd.extend(['-vf', 'fps=' + str(args.framerate)])
+
+    make_video_cmd.extend([
             '-pix_fmt', 'yuv420p',
-            '-loglevel', '16', # only display errors
+            '-loglevel', 'error',
             output]
 
     subprocess.call(make_video_cmd)
