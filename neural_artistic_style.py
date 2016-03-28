@@ -219,7 +219,7 @@ def style_video(args):
     make_video_cmd.extend([
             '-pix_fmt', 'yuv420p',
             '-loglevel', 'error',
-            output]
+            output])
 
     subprocess.call(make_video_cmd)
 
