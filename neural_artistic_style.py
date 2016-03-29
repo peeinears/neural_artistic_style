@@ -158,7 +158,7 @@ def style_video(args):
             '-f', 'image2']
 
     if args.framerate is not None:
-        make_video_cmd.extend(['-r', str(args.framerate)])
+        split_frames_cmd.extend(['-r', str(args.framerate)])
 
     split_frames_cmd.append(os.path.join(input_frames_dir, 'frame-%5d.jpg'))
 
