@@ -182,7 +182,7 @@ def style_video(args):
         print_progress(0, 'Styling frames...')
         start_time = time.time()
 
-    frames = os.listdir(input_frames_dir)
+    frames = os.listdir(input_frames_dir).sort()
 
     for i, frame in enumerate(frames):
         if not args.progress_disabled:
